@@ -1,4 +1,4 @@
 digitalocean-ddns
 =================
 
-Digital Ocean Dynamic DNS Update Script
+Digital Ocean dynamic DNS update script using Perl and LWP.
