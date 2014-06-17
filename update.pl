@@ -12,7 +12,12 @@ use Log::Tiny;
 use lib "$FindBin::Bin/lib";
 use DomainsApi;
 
-use Data::Dumper;
+sub error
+{
+	my ($log, $errstr)=@_;
+	$log->ERROR($errstr);
+	return $errstr;
+}
 
 my $log=Log::Tiny->new("$FindBin::Bin/log") or die Log::Tiny->errstr;
 my $cfg=decode_json(read_file("$FindBin::Bin/config.json"));
@@ -26,9 +31,7 @@ my $ip;
 if($res->is_success)
 	{ chomp($ip=$res->decoded_content) }
 else
-	{ $log->ERROR("Unable to resolve external IP (".$res->status_line.")") && exit}
-
-print "IP: $ip\n";
+	{ die error($log, "Unable to resolve external IP (".$res->status_line.")") }
 
 # Query the digital ocean API for the domain record
 my $api=DomainsApi->new({
@@ -36,14 +39,13 @@ my $api=DomainsApi->new({
 			apiKey		=> $cfg->{apiKey}
 		});
 
-my $domain=$api->getDomain($cfg->{domainName}) or die DomainsApi->errstr;
-my $record=$api->getRecord($domain->{id}, $cfg->{recordName}) or die DomainsApi->errstr;
+my $domain=$api->getDomain($cfg->{domainName}) or die error($log, DomainsApi->errstr);
+my $record=$api->getRecord($domain->{id}, $cfg->{recordName}) or die error($log, DomainsApi->errstr);
 
-print Dumper $record;
+if($record->{data} ne $ip)
+{
+	my $updatedRecord=$api->setRecord($domain->{id}, $record->{id}, $ip) or die error($log, DomainsApi->errstr);
+	$log->INFO($domain->{name}." A record \"".$record->{name}."\" changed from ".$record->{data}." to ".$updatedRecord->{data});
+}
 
-# TODO Implement setRecord method
-# if($record->{data} ne $ip)
-# {
-# 	$api->setRecord($domain->{id}, $record->{id}, $ip);
-# 	$log->INFO("DNS 'A' record \"".$cfg->{recordName}."\" changed to ".$ip);
-# }
+
