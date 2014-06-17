@@ -9,12 +9,17 @@ use File::Slurp;
 use FindBin;
 use Log::Tiny;
 
+use lib "$FindBin::Bin/lib";
+use DomainsApi;
+
+use Data::Dumper;
+
 my $log=Log::Tiny->new("$FindBin::Bin/log") or die Log::Tiny->errstr;
 my $cfg=decode_json(read_file("$FindBin::Bin/config.json"));
 
 # Get our global IP
 my $ua=LWP::UserAgent->new;
-my $req=HTTP::Request->new(GET => "http://ipinfo.io/ipp");
+my $req=HTTP::Request->new(GET => "http://ipinfo.io/ip");
 my $res=$ua->request($req);
 my $ip;
 
@@ -26,29 +31,17 @@ else
 print "IP: $ip\n";
 
 # Query the digital ocean API for the domain record
-my $record=Record->new($cfg);
+my $api=DomainsApi->new({
+			clientId	=> $cfg->{clientId},
+			apiKey		=> $cfg->{apiKey}
+		});
+
+my $domain=$api->getDomain($cfg->{domainName}) or die DomainsApi->errstr;
+
+#print "IP: ".$record->getIp."\n";
 
 # if($record->getIp ne $ip)
 # {
 # 	$record->setIp($ip);
 # 	$log->INFO("DNS 'A' record \"".$cfg->{recordName}."\" changed to ".$ip);
 # }
-
-package Record;
-
-sub new
-{
-	my ($class, $args)=@_;
-	my $self={};
-
-	$self->{_ua}=LWP::UserAgent->new;
-}
-sub getIp
-{
-
-}
-sub setIp
-{
-
-}
-1;
