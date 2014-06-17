@@ -33,7 +33,7 @@ Create a cron job entry to run the script. For example to run it every 5 min use
 
 ### AUTHOR
 
-Chris Handwerker 2013 <<chris.handwerker@gmail.com>>
+Chris Handwerker 2014 <<chris.handwerker@gmail.com>>
 
 ### LICENSE
 
