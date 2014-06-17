@@ -5,9 +5,8 @@ use vars qw($errstr);
 use LWP::UserAgent;
 use JSON::XS;
 
-use Data::Dumper;
+$errstr="";
 
-$errstr="foo";
 sub new
 {
 	my ($class, $args)=@_;
@@ -23,32 +22,33 @@ sub new
 }
 sub getDomain
 {
-	# Returns a hash table containing info about the matching domain name
-	# if no match or an error returns undef and sets the error string with a message
+	# Returns a DomainsApi::Domain object for the requested domain name
 	my ($self, $domainName)=@_;
-	my $domainsReq=HTTP::Request->new(
-			GET => $self->{url}."?client_id=".$self->{clientId}."&api_key=".$self->{apiKey}
-	);
-	my $res=$self->{ua}->request($domainsReq);
-	if($res->is_success)
-	{ 
-		my $domains=decode_json($res->decoded_content);
 
-		foreach my $domain(@{$domains->{domains}})
-			{ return $domain if($domain->{name} eq $domainName) }
+	my $domains=$self->_apicall($self->{url}."?client_id=".$self->{clientId}."&api_key=".$self->{apiKey}) or return undef;
 
-		return _error("Could not find domain: ".$domainName)
-	}
-	else
-		{ return _error("API call failed: ".$res->status_line) }
+	foreach my $domain(@{$domains->{domains}})
+		{ return $domain if($domain->{name} eq $domainName) }
+
+	return _error("Could not find domain: ".$domainName);
 }
 sub getRecord
 {
+	my ($self, $domainId, $recordName)=@_;
+	my $records=$self->_apicall($self->{url}."/".$domainId."/records?client_id=".$self->{clientId}."&api_key=".$self->{apiKey});
 
+	foreach my $record(@{$records->{records}})
+		{ return $record if ($record->{name} eq $recordName) }
+
+	return _error("Could not find record: ".$recordName);
 }
-sub setIp
+sub _apicall
 {
+	my ($self, $uri)=@_;
+	my $req=HTTP::Request->new(GET => $uri);
+	my $res=$self->{ua}->request($req);
 
+	return $res->is_success?decode_json($res->decoded_content):_error("API call failed: ".$res->status_line);
 }
 sub _error
 {

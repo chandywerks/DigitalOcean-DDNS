@@ -37,11 +37,13 @@ my $api=DomainsApi->new({
 		});
 
 my $domain=$api->getDomain($cfg->{domainName}) or die DomainsApi->errstr;
+my $record=$api->getRecord($domain->{id}, $cfg->{recordName}) or die DomainsApi->errstr;
 
-#print "IP: ".$record->getIp."\n";
+print Dumper $record;
 
-# if($record->getIp ne $ip)
+# TODO Implement setRecord method
+# if($record->{data} ne $ip)
 # {
-# 	$record->setIp($ip);
+# 	$api->setRecord($domain->{id}, $record->{id}, $ip);
 # 	$log->INFO("DNS 'A' record \"".$cfg->{recordName}."\" changed to ".$ip);
 # }
