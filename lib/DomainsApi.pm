@@ -35,12 +35,19 @@ sub getDomain
 sub getRecord
 {
 	my ($self, $domainId, $recordName)=@_;
-	my $records=$self->_apicall($self->{url}."/".$domainId."/records?client_id=".$self->{clientId}."&api_key=".$self->{apiKey});
+	my $records=$self->_apicall($self->{url}."/".$domainId."/records?client_id=".$self->{clientId}."&api_key=".$self->{apiKey}) or return undef;
 
 	foreach my $record(@{$records->{records}})
 		{ return $record if ($record->{name} eq $recordName) }
 
 	return _error("Could not find record: ".$recordName);
+}
+sub setRecord
+{
+	my ($self, $domainId, $recordId, $ip)=@_;
+	my $record=$self->_apicall($self->{url}."/".$domainId."/records/".$recordId."/edit?client_id=".$self->{clientId}."&api_key=".$self->{apiKey}."&record_type=A&data=".$ip) or return undef;
+	return $record->{record};
+
 }
 sub _apicall
 {
