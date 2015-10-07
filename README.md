@@ -16,7 +16,7 @@ You can find your API key and client ID here: https://cloud.digitalocean.com/api
 Make sure you have the OpenSSL libraries and required Perl modules installed,
 
 	sudo apt-get install libssl-dev
-	sudo cpan LWP::UserAgent JSON::XS File::Slurp FindBin Log::Tiny
+	sudo cpan LWP::UserAgent LWP::Protocol::https JSON::XS File::Slurp FindBin Log::Tiny
 
 Run the update.pl script once and make sure there are no errors.
 
