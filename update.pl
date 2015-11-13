@@ -27,22 +27,17 @@ my $req = HTTP::Request->new(GET => "http://ipinfo.io/ip");
 my $res = $ua->request($req);
 my $ip;
 
-if ($res->is_success) {
+if( $res->is_success ) {
 	chomp($ip=$res->decoded_content);
 } else {
 	die error($log, "Unable to resolve external IP (".$res->status_line.")");
 }
 
 # Query the digital ocean API for the domain record
-my $api=DomainsAPI->new({
-	clientId	=> $cfg->{clientId},
-	apiKey		=> $cfg->{apiKey}
-});
+my $api = DomainsAPI->new( $cfg->{token} );
+my $record = $api->getRecord( $cfg->{record}, $cfg->{domain} ) or die error( $log, DomainsAPI->errstr );
 
-my $domain = $api->getDomain($cfg->{domainName}) or die error($log, DomainsAPI->errstr);
-my $record = $api->getRecord($domain->{id}, $cfg->{recordName}) or die error($log, DomainsAPI->errstr);
-
-if ($record->{data} ne $ip) {
-	my $updatedRecord = $api->setRecord($domain->{id}, $record->{id}, $ip) or die error($log, DomainsAPI->errstr);
-	$log->INFO($domain->{name}." A record \"".$record->{name}."\" changed from ".$record->{data}." to ".$updatedRecord->{data});
+if( $record->{data} ne $ip ) {
+	$api->setRecord( $record->{id}, $cfg->{domain}, $ip ) or die error( $log, DomainsAPI->errstr );
+	$log->INFO($cfg->{domain}." A record \"".$cfg->{record}."\" changed from ".$record->{data}." to ".$ip);
 }

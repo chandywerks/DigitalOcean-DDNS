@@ -8,56 +8,47 @@ use JSON::XS;
 $errstr = "";
 
 sub new {
-	my ($class, $args) = @_;
+	my ($class, $token) = @_;
 
 	my $self = {
-		clientId	=> $args->{clientId},
-		apiKey		=> $args->{apiKey}
+		token => $token,
+		url   => "https://api.digitalocean.com/v2/domains",
+		ua    => LWP::UserAgent->new()
 	};
-
-	$self->{url} = "https://api.digitalocean.com/v1/domains";
-	$self->{ua}  = LWP::UserAgent->new;
 
 	return bless($self, $class);
 }
 
-sub getDomain {
-	# Returns a DomainsAPI::Domain object for the requested domain name
-	my ($self, $domainName) = @_;
-
-	my $domains = $self->_apicall($self->{url}."?client_id=".$self->{clientId}."&api_key=".$self->{apiKey}) or return undef;
-
-	foreach my $domain (@{ $domains->{domains} }) {
-		return $domain if ($domain->{name} eq $domainName);
-	}
-
-	return _error("Could not find domain: ".$domainName);
-}
-
 sub getRecord {
-	my ($self, $domainId, $recordName) = @_;
+	my ($self, $recordName, $domainName) = @_;
 
-	my $records = $self->_apicall($self->{url}."/".$domainId."/records?client_id=".$self->{clientId}."&api_key=".$self->{apiKey}) or return undef;
+	my $records = $self->_apicall('GET', $self->{url}."/".$domainName."/records") or return undef;
 
-	foreach my $record (@{ $records->{records} }) {
+	foreach my $record (@{ $records->{domain_records} }) {
 		return $record if ($record->{name} eq $recordName);
 	}
 
-	return _error("Could not find record: ".$recordName);
+	return _error("Could not find record $recordName for $domainName");
 }
 
 sub setRecord {
-	my ($self, $domainId, $recordId, $ip) = @_;
-
-	my $record = $self->_apicall($self->{url}."/".$domainId."/records/".$recordId."/edit?client_id=".$self->{clientId}."&api_key=".$self->{apiKey}."&record_type=A&data=".$ip) or return undef;
-	return $record->{record};
-
+	my ($self, $recordId, $domainName, $ip) = @_;
+	return $self->_apicall('PUT', $self->{url}."/".$domainName."/records/".$recordId, { data => $ip });
 }
 
 sub _apicall {
-	my ($self, $uri) = @_;
+	my ($self, $method, $uri, $content) = @_;
 
-	my $req = HTTP::Request->new(GET => $uri);
+	my $req = HTTP::Request->new( $method => $uri );
+	$req->header(
+		'Content-Type'  => 'application/json',
+		'Authorization' => "Bearer $self->{token}"
+	);
+
+	if( defined $content ) {
+		$req->content( encode_json( $content ) );
+	}
+
 	my $res = $self->{ua}->request($req);
 
 	return $res->is_success ? decode_json($res->decoded_content) : _error("API call failed: ".$res->status_line);

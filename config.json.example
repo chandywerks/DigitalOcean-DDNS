@@ -1,6 +1,5 @@
 {
-	"clientId"		: "",
-	"apiKey"		: "",
-	"domainName"	: "",
-	"recordName"	: ""
+	"domain" : "",
+	"record" : "",
+	"token"  : ""
 }

@@ -9,9 +9,9 @@ Clone the git repository,
 
 	git clone git@github.com:chandwer/DigitalOcean-DDNS.git
 
-Edit config.json.example with your client ID, API key, domain name, and record name; rename it to config.json
+Generate a personal access token with write privilages here, https://cloud.digitalocean.com/settings/applications
 
-You can find your API key and client ID here: https://cloud.digitalocean.com/api_access
+Edit config.json.example with your domain name, record name, and personal access token; rename it to config.json
 
 Make sure you have the OpenSSL libraries and required Perl modules installed,
 
