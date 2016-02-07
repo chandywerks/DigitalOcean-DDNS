@@ -2,11 +2,11 @@
 	"token"  : "",
 	"domains" : [
 		{
-			"domain" : "foo.net",
+			"name"   : "foo.net",
 			"record" : "something"
 		},
 		{
-			"domain"  : "bar.net",
+			"name"    : "bar.net",
 			"records" : ["@", "*"]
 		}
 	]
