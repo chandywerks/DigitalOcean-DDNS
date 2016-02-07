@@ -33,11 +33,32 @@ if( $res->is_success ) {
 	die error($log, "Unable to resolve external IP (".$res->status_line.")");
 }
 
-# Query the digital ocean API for the domain record
 my $api = DomainsAPI->new( $cfg->{token} );
-my $record = $api->getRecord( $cfg->{record}, $cfg->{domain} ) or die error( $log, DomainsAPI->errstr );
 
-if( $record->{data} ne $ip ) {
-	$api->setRecord( $record->{id}, $cfg->{domain}, $ip ) or die error( $log, DomainsAPI->errstr );
-	$log->INFO($cfg->{domain}." A record \"".$cfg->{record}."\" changed from ".$record->{data}." to ".$ip);
+# Push object in domains for old config files where A record and domain are defined in the root object
+if( defined $cfg->{domain} && defined $cfg->{record} ) {
+	push( @{ $cfg->{domains} }, {
+		name   => $cfg->{domain},
+		record => $cfg->{record}
+	});
+}
+
+foreach my $domain ( @{ $cfg->{domains} } ) {
+
+	# If just a single record was defined push it in to records array
+	if( defined $domain->{record} ) {
+		push( @{ $domain->{records} }, $domain->{record} );
+	}
+
+	foreach my $record_name ( @{ $domain->{records} } ) {
+		# Query the digital ocean API for the domain A record
+		my $record = $api->getRecord( $record_name, $domain->{name} ) or die error( $log, DomainsAPI->errstr );
+
+		# Update the A record if the IP has changed
+		if( $record->{data} ne $ip ) {
+			$api->setRecord( $record->{id}, $domain->{name}, $ip ) or die error( $log, DomainsAPI->errstr );
+			$log->INFO($domain->{name}." A record \"".$record_name."\" changed from ".$record->{data}." to ".$ip);
+		}
+	}
+
 }

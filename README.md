@@ -11,7 +11,7 @@ Clone the git repository,
 
 Generate a personal access token with write privilages here, https://cloud.digitalocean.com/settings/applications
 
-Edit config.json.example with your domain name, record name, and personal access token; rename it to config.json
+Using the config.json.example as a reference make a config file with a personal access token and an array of domains objects under the domains key. Each domains object must contain a "domain" key and optionally a "record" key with a single record to update or a "records" key with an array of records to update.
 
 Make sure you have the OpenSSL libraries and required Perl modules installed,
 

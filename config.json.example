@@ -1,5 +1,13 @@
 {
-	"domain" : "",
-	"record" : "",
-	"token"  : ""
+	"token"  : "",
+	"domains" : [
+		{
+			"domain" : "foo.net",
+			"record" : "something"
+		},
+		{
+			"domain"  : "bar.net",
+			"records" : ["@", "*"]
+		}
+	]
 }

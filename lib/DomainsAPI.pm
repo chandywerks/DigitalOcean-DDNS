@@ -25,7 +25,9 @@ sub getRecord {
 	my $records = $self->_apicall('GET', $self->{url}."/".$domainName."/records") or return undef;
 
 	foreach my $record (@{ $records->{domain_records} }) {
-		return $record if ($record->{name} eq $recordName);
+		if ( $record->{name} eq $recordName && $record->{type} eq "A" ) {
+			return $record;
+		}
 	}
 
 	return _error("Could not find record $recordName for $domainName");
