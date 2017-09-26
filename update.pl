@@ -35,14 +35,6 @@ if( $res->is_success ) {
 
 my $api = DomainsAPI->new( $cfg->{token} );
 
-# Push object in domains for old config files where A record and domain are defined in the root object
-if( defined $cfg->{domain} && defined $cfg->{record} ) {
-	push( @{ $cfg->{domains} }, {
-		name   => $cfg->{domain},
-		record => $cfg->{record}
-	});
-}
-
 foreach my $domain ( @{ $cfg->{domains} } ) {
 
 	# If just a single record was defined push it in to records array
@@ -52,7 +44,13 @@ foreach my $domain ( @{ $cfg->{domains} } ) {
 
 	foreach my $record_name ( @{ $domain->{records} } ) {
 		# Query the digital ocean API for the domain A record
-		my $record = $api->getRecord( $record_name, $domain->{name} ) or die error( $log, DomainsAPI->errstr );
+		my $record = $api->getRecord( $record_name, $domain->{name} );
+
+		if( !$record ) {
+			error( $log, "Unable to get " . $record_name . "record for " . $domain->{name} . ": " . DomainsAPI->errstr );
+
+			next;
+		}
 
 		# Update the A record if the IP has changed
 		if( $record->{data} ne $ip ) {

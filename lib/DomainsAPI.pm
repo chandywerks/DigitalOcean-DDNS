@@ -53,7 +53,7 @@ sub _apicall {
 
 	my $res = $self->{ua}->request($req);
 
-	return $res->is_success ? decode_json($res->decoded_content) : _error("API call failed: ".$res->status_line);
+	return $res->is_success ? decode_json($res->decoded_content) : _error("Digital Ocean API call failed: ".$res->status_line);
 }
 
 sub _error {
